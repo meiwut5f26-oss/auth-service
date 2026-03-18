@@ -36,6 +36,9 @@ public class OpenApiConfig {
                                 .url("https://www.apache.org/licenses/LICENSE-2.0.html")))
                 .servers(List.of(
                         new Server()
+                                .url("https://auth-service-wq2a.onrender.com")
+                                .description("Production (Render)"),
+                        new Server()
                                 .url("http://localhost:8080" + contextPath)
                                 .description("Local Development Server")
                 ))
