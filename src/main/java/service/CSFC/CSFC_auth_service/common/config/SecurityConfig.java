@@ -26,31 +26,30 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthorizationFilter authorizationFilter)
             throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ADD THIS
                 .authorizeHttpRequests(request -> {
                     request.requestMatchers(
-                            "/auth/register",
-                            "/auth/login",
-                            "/auth/refresh",
-                            "/auth/forgot-password",
-                            "/auth/reset-password",
-                            "/v3/api-docs/**",
-                            "/v3/api-docs.yaml",
-                            "/swagger-ui/**",
-                            "/swagger-ui.html",
-                            "/swagger-resources/**",
-                            "/webjars/**").permitAll()
+                                    "/auth/register",
+                                    "/auth/login",
+                                    "/auth/refresh",
+                                    "/auth/forgot-password",
+                                    "/auth/reset-password",
+                                    "/v3/api-docs/**",
+                                    "/v3/api-docs.yaml",
+                                    "/swagger-ui/**",
+                                    "/swagger-ui.html",
+                                    "/swagger-resources/**",
+                                    "/webjars/**","https://auth-service-wq2a.onrender.com").permitAll()
                             .anyRequest().authenticated();
                 })
                 .addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
-
     // Cấu hình AuthenticationManager để sử dụng CustomerUserDetailsService và
     // PasswordEncoder
     @Bean

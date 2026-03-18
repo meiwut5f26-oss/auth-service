@@ -1,6 +1,6 @@
 server:
   port: ${PORT:8080}
-
+  forward-headers-strategy: framework
 spring:
   application:
     name: csfc-auth-service
