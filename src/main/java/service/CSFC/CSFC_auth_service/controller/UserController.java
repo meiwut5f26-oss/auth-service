@@ -20,7 +20,7 @@ import java.util.UUID;
 @Tag(name = "User Management", description = "Quản lý thông tin người dùng")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
+@RequestMapping("/api/auth-service/users")
 public class UserController {
 
     private final UserService userService;

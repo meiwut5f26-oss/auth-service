@@ -15,7 +15,7 @@ import java.util.List;
 @Tag(name = "Admin - Permissions Management", description = "Admin quản lý permissions và gán permission cho role")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/roles")
+@RequestMapping("/api/auth-service/admin/roles")
 public class AdminPermissionsController {
 
     private final AdminPermissionsService adminPermissionsService;

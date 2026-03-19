@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Roles Management", description = "Quản lý các roles trong hệ thống")
 @RestController
-@RequestMapping("/roles")
+@RequestMapping("/api/auth-service/roles")
 @RequiredArgsConstructor
 public class RolesController {
 

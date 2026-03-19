@@ -21,7 +21,7 @@ import service.CSFC.CSFC_auth_service.service.UserService;
 @Tag(name = "Authentication", description = "Đăng ký, đăng nhập, refresh token, quên mật khẩu")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth")
+@RequestMapping("/api/auth-service/auth")
 
 public class AuthenticationController {
 

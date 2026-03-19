@@ -15,7 +15,7 @@ import service.CSFC.CSFC_auth_service.service.RolesService;
 
 
 @RestController
-@RequestMapping("/rbp")
+@RequestMapping("/api/auth-service/public/rbp")
 @RequiredArgsConstructor
 @Slf4j
 public class RbpController {
