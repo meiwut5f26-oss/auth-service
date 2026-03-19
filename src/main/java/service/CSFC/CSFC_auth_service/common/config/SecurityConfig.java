@@ -44,7 +44,8 @@ public class SecurityConfig {
                                     "/swagger-ui/**",
                                     "/swagger-ui.html",
                                     "/swagger-resources/**",
-                                    "/webjars/**").permitAll()
+                                    "/webjars/**",
+                                    "/rbp/**").permitAll()
                             .anyRequest().authenticated();
                 })
                 .addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class)

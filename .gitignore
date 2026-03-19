@@ -31,5 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
-.env
+# Ignore docker-specific env copy files
 .env.docker
+
+# Optional: local IDE and build artifacts
+target/
+*.log
