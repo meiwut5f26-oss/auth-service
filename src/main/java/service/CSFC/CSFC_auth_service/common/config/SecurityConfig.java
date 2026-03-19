@@ -34,11 +34,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ADD THIS
                 .authorizeHttpRequests(request -> {
                     request.requestMatchers(
-                                    "/auth/register",
-                                    "/auth/login",
-                                    "/auth/refresh",
-                                    "/auth/forgot-password",
-                                    "/auth/reset-password",
+                                    "/api/auth-service/auth/register",
+                                    "/api/auth-service/auth/login",
+                                    "/api/auth-service/auth/refresh",
+                                    "/api/auth-service/auth/forgot-password",
+                                    "/api/auth-service/auth/reset-password",
                                     "/v3/api-docs/**",
                                     "/v3/api-docs.yaml",
                                     "/swagger-ui/**",
