@@ -47,16 +47,9 @@ public class RbpController {
     }
 
     private RolesResponse getOrCreateRole(String roleName) {
-        try {
-            RolesResponse role = rolesService.createRole(new RolesRequest(roleName));
-            log.info("Created new role: {}", roleName);
-            return role;
-        } catch (RuntimeException e) {
-            log.warn("Role already exists, fetching: {} | reason: {}", roleName, e.getMessage());
-            return rolesService.getAllRoles().stream()
-                    .filter(r -> r.getRoleName().equals(roleName))
-                    .findFirst()
-                    .orElseThrow();
-        }
+        return rolesService.getAllRoles().stream()
+                .filter(r -> r.getRoleName().equals(roleName))
+                .findFirst()
+                .orElseGet(() -> rolesService.createRole(new RolesRequest(roleName)));
     }
 }
