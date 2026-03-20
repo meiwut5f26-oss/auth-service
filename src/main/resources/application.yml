@@ -4,22 +4,18 @@ server:
 
 application:
   config:
-    order-service-url: ${SERVICE_URL}
-    franchise-service-url: ${SERVICE_URL}
-logging:
-  level:
-    org.springframework.boot.context.config: DEBUG
+    order-service-url: ${ORDER_SERVICE_URL}
+    franchise-service-url: ${FRANCHISE_SERVICE_URL}
+
 spring:
   application:
     name: csfc-auth-service
   config:
     import: optional:file:.env[.properties]
-
-
   datasource:
-    url: jdbc:postgresql://localhost:5444/auth_db
-    username: user
-    password: pass
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       initialization-fail-timeout: 30000
@@ -28,7 +24,6 @@ spring:
       maximum-pool-size: 5
       minimum-idle: 1
       connection-test-query: SELECT 1
-
   jpa:
     defer-datasource-initialization: true
     hibernate:
@@ -37,8 +32,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-
-
   mail:
     host: smtp.gmail.com
     port: 587
@@ -63,11 +56,23 @@ app:
 
 eureka:
   client:
-    enabled: ${EUREKA_CLIENT_ENABLED:false}
+    enabled: ${EUREKA_CLIENT_ENABLED:true}
     service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
-    register-with-eureka: ${EUREKA_CLIENT_ENABLED:false}
-    fetch-registry: ${EUREKA_CLIENT_ENABLED:false}
+    register-with-eureka: ${EUREKA_CLIENT_ENABLED:true}
+    fetch-registry: ${EUREKA_CLIENT_ENABLED:true}
+  instance:
+    prefer-ip-address: false
+    hostname: ${RENDER_EXTERNAL_HOSTNAME:localhost}
+    secure-port: 443
+    secure-port-enabled: true
+    non-secure-port-enabled: false
+    home-page-url: https://${RENDER_EXTERNAL_HOSTNAME:localhost}/
+    status-page-url: https://${RENDER_EXTERNAL_HOSTNAME:localhost}/actuator/info
+    health-check-url: https://${RENDER_EXTERNAL_HOSTNAME:localhost}/actuator/health
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+    instance-id: ${spring.application.name}:${RENDER_EXTERNAL_HOSTNAME:localhost}
 
 jwt:
   secret: ${JWT_SECRET}
@@ -88,8 +93,6 @@ management:
     defaults:
       enabled: true
     db:
-      enabled: false
-    discovery:
       enabled: false
     mail:
       enabled: false
