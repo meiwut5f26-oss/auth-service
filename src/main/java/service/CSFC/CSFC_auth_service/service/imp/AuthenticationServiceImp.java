@@ -34,7 +34,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final UserMapper userMapper;
     private final EmailService emailService;
-
+    private final RolesRepository rolesRepository;
     @Override
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
@@ -55,26 +55,24 @@ public class AuthenticationServiceImp implements AuthenticationService {
 
     @Override
     public RegisterResponse register(RegisterRequest request) {
-
         if (usersRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException(
                     "Email này đã tồn tại trên hệ thống, vui lòng sử dụng 1 email khác hoặc quên mật khẩu");
         }
 
+        Roles customerRole = rolesRepository.findByName("CUSTOMER")
+                .orElseThrow(() -> new ResourceNotFoundException("Role CUSTOMER không tồn tại"));
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         Users user = userMapper.toEntity(request, encodedPassword);
-        Roles defaultRole = new Roles();
-        defaultRole.setId(2); // role USER có ID là 2
-        user.setRole(defaultRole);
-        user.setCreateDate(LocalDateTime.now());
+        user.setRole(customerRole);   // ← safe fetch instead of hardcoded ID
+
         usersRepository.save(user);
 
         return RegisterResponse.builder()
                 .user(userMapper.toResponse(user))
                 .build();
     }
-
     @Override
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();

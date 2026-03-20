@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,6 +23,7 @@ public class RegisterRequest {
     @NotBlank(message = "Mật khẩu không được để trống")
     @Size(min = 8, max = 20, message = "Mật khẩu phải từ 8 tới 20 ký tự")
     private String password;
-
+    private String phone;
     private String address;
+    private UUID franchiseId;
 }

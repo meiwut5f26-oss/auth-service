@@ -1,18 +1,17 @@
 version: '3.8'
 
 services:
-  csfc-auth-mysql:
-    image: mysql:8.4
+  csfc-auth-postgres:
+    image: postgres:16
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: csfc_auth_db
-      MYSQL_USER: csfc_user
-      MYSQL_PASSWORD: csfc_pass
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
     ports:
-      - "3309:3306"
+      - "5444:5432"
     volumes:
-      - csfc_mysql_data:/var/lib/mysql
+      - csfc_postgres_data:/var/lib/postgresql/data
 
 volumes:
-  csfc_mysql_data:
+  csfc_postgres_data:

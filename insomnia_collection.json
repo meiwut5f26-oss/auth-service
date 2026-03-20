@@ -1,0 +1,246 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-03-20T00:00:00.000Z",
+  "__export_source": "github-copilot-insomnia",
+  "resources": [
+    {
+      "_id": "wrk_csfc_auth",
+      "parentId": null,
+      "modified": 0,
+      "created": 0,
+      "_type": "workspace",
+      "name": "CSFC Auth Service",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_csfc_base",
+      "parentId": "wrk_csfc_auth",
+      "modified": 0,
+      "created": 0,
+      "_type": "environment",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8080/api/auth-service",
+        "access_token": "",
+        "refresh_token": "",
+        "admin_email": "admin@example.com",
+        "admin_password": "password"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "access_token",
+          "refresh_token",
+          "admin_email",
+          "admin_password"
+        ]
+      }
+    },
+    {
+      "_id": "fld_auth",
+      "parentId": "wrk_csfc_auth",
+      "modified": 0,
+      "created": 0,
+      "_type": "request_group",
+      "name": "Auth",
+      "environment": {},
+      "environmentPropertyOrder": null
+    },
+    {
+      "_id": "req_register",
+      "parentId": "fld_auth",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Register (customer)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/register",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"P@ssw0rd!\",\n  \"name\": \"User Name\",\n  \"address\": \"123 Street\",\n  \"phone\": \"0123456789\",\n  \"franchiseId\": null\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json"}
+      ]
+    },
+    {
+      "_id": "req_login",
+      "parentId": "fld_auth",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ _.admin_email }}\",\n  \"password\": \"{{ _.admin_password }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json"}
+      ]
+    },
+    {
+      "_id": "req_refresh",
+      "parentId": "fld_auth",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Refresh Token",
+      "method": "POST",
+      "url": "{{ _.base_url }}/auth/refresh",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refreshToken\": \"{{ _.refresh_token }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {"name": "Content-Type", "value": "application/json"}
+      ]
+    },
+    {
+      "_id": "fld_users",
+      "parentId": "wrk_csfc_auth",
+      "modified": 0,
+      "created": 0,
+      "_type": "request_group",
+      "name": "Users",
+      "environment": {},
+      "environmentPropertyOrder": null
+    },
+    {
+      "_id": "req_me",
+      "parentId": "fld_users",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Me",
+      "method": "GET",
+      "url": "{{ _.base_url }}/users/me",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.access_token }}"}
+      ]
+    },
+    {
+      "_id": "req_create_account",
+      "parentId": "fld_users",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Create Account (admin/staff)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/users/create-account",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"staff@example.com\",\n  \"name\": \"Staff User\",\n  \"address\": \"123 Street\",\n  \"phone\": \"0999999999\",\n  \"franchiseId\": """"00000000-0000-0000-0000-000000000000"""",\n  \"roleName\": \"STAFF\"\n}"
+      },
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.access_token }}"},
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "parameters": []
+    },
+    {
+      "_id": "req_deactivate",
+      "parentId": "fld_users",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Deactivate User",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/users/{{ userId }}/deactivate",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.access_token }}"}
+      ],
+      "parameters": []
+    },
+    {
+      "_id": "req_delete",
+      "parentId": "fld_users",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Delete User",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/users/{{ userId }}",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.access_token }}"}
+      ],
+      "parameters": []
+    },
+    {
+      "_id": "fld_roles",
+      "parentId": "wrk_csfc_auth",
+      "modified": 0,
+      "created": 0,
+      "_type": "request_group",
+      "name": "Roles & Permissions",
+      "environment": {},
+      "environmentPropertyOrder": null
+    },
+    {
+      "_id": "req_list_roles",
+      "parentId": "fld_roles",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "List Roles",
+      "method": "GET",
+      "url": "{{ _.base_url }}/roles",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.access_token }}"}
+      ],
+      "parameters": []
+    },
+    {
+      "_id": "req_assign_permission",
+      "parentId": "fld_roles",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Assign Permission to Role",
+      "method": "POST",
+      "url": "{{ _.base_url }}/admin/roles/{{ roleId }}/permissions",
+      "parameters": [
+        {"name": "permissionName", "value": "USER_READ_SELF"}
+      ],
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.access_token }}"}
+      ]
+    },
+    {
+      "_id": "req_role_permissions",
+      "parentId": "fld_roles",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Get Role Permissions",
+      "method": "GET",
+      "url": "{{ _.base_url }}/admin/roles/{{ roleId }}/permissions",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.access_token }}"}
+      ],
+      "parameters": []
+    },
+    {
+      "_id": "req_all_permissions",
+      "parentId": "fld_roles",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "List All Permissions",
+      "method": "GET",
+      "url": "{{ _.base_url }}/admin/roles/permissions",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.access_token }}"}
+      ],
+      "parameters": []
+    }
+  ]
+}
+

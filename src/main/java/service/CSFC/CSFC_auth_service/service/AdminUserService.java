@@ -15,5 +15,5 @@ public interface AdminUserService {
 
     void activateUser(UUID userId);
 
-    void assignRole(UUID userId, Long roleId);
+    void assignRole(UUID userId, Integer roleId);
 }

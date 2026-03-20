@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import service.CSFC.CSFC_auth_service.mapper.UserMapper;
+import service.CSFC.CSFC_auth_service.model.constants.CustomerStatus;
 import service.CSFC.CSFC_auth_service.model.dto.response.ResetPasswordResponse;
 import service.CSFC.CSFC_auth_service.model.dto.response.UserDetailResponse;
 import service.CSFC.CSFC_auth_service.model.dto.response.UserListResponse;
@@ -75,18 +76,18 @@ public class AdminUserServiceImp implements AdminUserService {
         Users user = usersRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-        user.setIsActive(true);
+        user.setStatus(CustomerStatus.ACTIVE);
         usersRepository.save(user);
     }
 
 
     @Override
-    public void assignRole(UUID userId, Long roleId) {
+    public void assignRole(UUID userId, Integer roleId) {
 
         Users user = usersRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-        Roles role = rolesRepository.findById(roleId.intValue())
+        Roles role = rolesRepository.findById(roleId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò"));
 
         user.setRole(role);

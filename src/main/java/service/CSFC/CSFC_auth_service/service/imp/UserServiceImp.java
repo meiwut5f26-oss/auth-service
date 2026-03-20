@@ -4,9 +4,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import service.CSFC.CSFC_auth_service.common.exception.BadRequestException;
 import service.CSFC.CSFC_auth_service.common.exception.ResourceNotFoundException;
 import service.CSFC.CSFC_auth_service.mapper.UserMapper;
+import service.CSFC.CSFC_auth_service.model.constants.CustomerStatus;
 import service.CSFC.CSFC_auth_service.model.dto.request.CreateUserRequest;
 import service.CSFC.CSFC_auth_service.model.dto.response.UserResponse;
 import service.CSFC.CSFC_auth_service.model.entity.Roles;
@@ -42,38 +44,43 @@ public class UserServiceImp implements UserService {
         Users user = usersRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
 
-        if (!Boolean.TRUE.equals(user.getIsActive())) {
+        if (user.getStatus() == CustomerStatus.LOCKED) {
             throw new BadRequestException("Người dùng đã bị vô hiệu hóa");
         }
 
-        user.setIsActive(false);
+        user.setStatus(CustomerStatus.LOCKED);
     }
 
     @Override
     @Transactional
-    public UserResponse CreateUserWithRoleByAdmin(CreateUserRequest request) {
-
+    public UserResponse createUserWithRoleByAdmin(CreateUserRequest request) {
         if (usersRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException(
-                    "Email này đã tồn tại trên hệ thống, vui lòng sử dụng email khác");
+            throw new BadRequestException("Email này đã tồn tại trên hệ thống, vui lòng sử dụng email khác");
+        }
+
+        // Default to STAFF if no role provided
+        String roleToAssign = StringUtils.hasText(request.getRoleName())
+                ? request.getRoleName()
+                : "STAFF";
+
+        // Customers should only be created through customer registration flow
+        if ("CUSTOMER".equalsIgnoreCase(roleToAssign)) {
+            throw new BadRequestException("Chỉ người dùng tự đăng ký mới được gán role CUSTOMER");
+        }
+
+        Roles role = rolesRepository.findByName(roleToAssign)
+                .orElseThrow(() -> new BadRequestException("Không tìm thấy role: " + roleToAssign));
+
+        // Validate: STAFF must have franchiseId
+        if ("STAFF".equals(roleToAssign) && request.getFranchiseId() == null) {
+            throw new BadRequestException("Nhân viên phải được gán vào một franchise");
         }
 
         Users user = userMapper.toEntityCreateUserWithRoleByAdmin(
                 request,
                 passwordEncoder.encode("Demo@123")
         );
-
-        Roles role = (request.getRole() == null)
-                ? rolesRepository.findByName("USER")
-                    .orElseThrow(() ->
-                        new BadRequestException("Không tìm thấy role mặc định: USER"))
-                : rolesRepository.findByName(request.getRole().getName())
-                    .orElseThrow(() ->
-                        new BadRequestException("Không tìm thấy role: " +
-                                request.getRole().getName()));
-
         user.setRole(role);
-        user.setIsActive(true);
         user.setIsFirstLogin(true);
 
         return userMapper.toResponse(usersRepository.save(user));
@@ -86,7 +93,7 @@ public class UserServiceImp implements UserService {
         Users user = usersRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
 
-        if (Boolean.TRUE.equals(user.getIsActive())) {
+        if (user.getStatus() != CustomerStatus.LOCKED) {
             throw new BadRequestException("Phải vô hiệu hóa người dùng trước khi xóa");
         }
 

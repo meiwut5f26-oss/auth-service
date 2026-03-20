@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import service.CSFC.CSFC_auth_service.model.constants.CustomerStatus;
 import service.CSFC.CSFC_auth_service.model.entity.Users;
 
 import java.util.ArrayList;
@@ -21,14 +22,14 @@ public class CustomerUserDetails implements UserDetails {
         List<GrantedAuthority> authorities = new ArrayList<>();
         var role = user.getRole();
 
-        // role
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+        if (role != null) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
 
-        // permissions
-        if (role.getPermissions() != null) {
-            role.getPermissions().forEach(p ->
-                    authorities.add(new SimpleGrantedAuthority(p.getName()))
-            );
+            if (role.getPermissions() != null) {
+                role.getPermissions().forEach(p ->
+                        authorities.add(new SimpleGrantedAuthority(p.getName()))
+                );
+            }
         }
         return authorities;
     }
@@ -48,6 +49,6 @@ public class CustomerUserDetails implements UserDetails {
     @Override public boolean isCredentialsNonExpired() { return true; }
     @Override
     public boolean isEnabled() {
-        return Boolean.TRUE.equals(user.getIsActive());
+        return user.getStatus() == CustomerStatus.ACTIVE;
     }
 }
