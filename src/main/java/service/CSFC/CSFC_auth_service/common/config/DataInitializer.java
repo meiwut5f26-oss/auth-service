@@ -60,13 +60,25 @@ public class DataInitializer implements ApplicationRunner {
             "USER_DELETE",
             "USER_UPDATE_STATUS",
             "USER_CREATE",
-            "USER_READ_SELF"
+            "USER_READ_SELF",
+            "CUSTOMER_PROFILE_UPDATE_SELF",
+            "CUSTOMER_PROFILE_LIST",
+            "CUSTOMER_PROFILE_VIEW",
+            "CUSTOMER_PROFILE_UPDATE",
+            "CUSTOMER_PROFILE_STATUS_UPDATE",
+            "CUSTOMER_PROFILE_LOCK",
+            "CUSTOMER_PROFILE_UNLOCK",
+            "CUSTOMER_SEARCH",
+            "CUSTOMER_ACTIVITY_VIEW",
+            "INTERNAL_CUSTOMER_READ",
+            "INTERNAL_CUSTOMER_WRITE",
+            "CUSTOMER_AUDIT_VIEW"
     );
 
     private static final Map<String, List<String>> ROLE_PERMISSION_MAP = new LinkedHashMap<>() {{
         put("ADMIN", BOOTSTRAP_PERMISSIONS);
-        put("STAFF", List.of("USER_READ_SELF"));
-        put("CUSTOMER", List.of("USER_READ_SELF"));
+        put("STAFF", List.of("USER_READ_SELF", "CUSTOMER_PROFILE_VIEW"));
+        put("CUSTOMER", List.of("USER_READ_SELF", "CUSTOMER_PROFILE_UPDATE_SELF"));
     }};
 
     @Override

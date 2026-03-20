@@ -1,0 +1,301 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-03-20T00:00:00.000Z",
+  "__export_source": "github-copilot-insomnia",
+  "resources": [
+    {
+      "_id": "wrk_csfc_customer",
+      "parentId": null,
+      "modified": 0,
+      "created": 0,
+      "_type": "workspace",
+      "name": "CSFC Customer Service",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_customer_base",
+      "parentId": "wrk_csfc_customer",
+      "modified": 0,
+      "created": 0,
+      "_type": "environment",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8080/api/auth-service",
+        "access_token": "",
+        "admin_access_token": ""
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "access_token",
+          "admin_access_token"
+        ]
+      }
+    },
+    {
+      "_id": "fld_customer_self",
+      "parentId": "wrk_csfc_customer",
+      "modified": 0,
+      "created": 0,
+      "_type": "request_group",
+      "name": "Customer - Self",
+      "environment": {},
+      "environmentPropertyOrder": null
+    },
+    {
+      "_id": "req_get_my_profile",
+      "parentId": "fld_customer_self",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Get My Profile",
+      "method": "GET",
+      "url": "{{ _.base_url }}/customers/me/details",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.access_token }}"}
+      ],
+      "body": {},
+      "parameters": []
+    },
+    {
+      "_id": "req_update_my_profile",
+      "parentId": "fld_customer_self",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Update My Profile",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/customers/me/details",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.access_token }}"},
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Updated Customer\",\n  \"phone\": \"0900000000\",\n  \"address\": \"New address\",\n  \"marketingOptin\": true\n}"
+      },
+      "parameters": []
+    },
+    {
+      "_id": "fld_admin_customers",
+      "parentId": "wrk_csfc_customer",
+      "modified": 0,
+      "created": 0,
+      "_type": "request_group",
+      "name": "Admin - Customers",
+      "environment": {},
+      "environmentPropertyOrder": null
+    },
+    {
+      "_id": "req_admin_all_profiles",
+      "parentId": "fld_admin_customers",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "List All Profiles",
+      "method": "GET",
+      "url": "{{ _.base_url }}/admin/customers/all-profile",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"}
+      ],
+      "body": {},
+      "parameters": []
+    },
+    {
+      "_id": "req_admin_get_profile",
+      "parentId": "fld_admin_customers",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Get Profile By ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/admin/customers/{{ userId }}/profile",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"}
+      ],
+      "body": {},
+      "parameters": []
+    },
+    {
+      "_id": "req_admin_update_profile",
+      "parentId": "fld_admin_customers",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Update Profile By ID",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/admin/customers/{{ userId }}/profile",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"},
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Customer Updated\",\n  \"phone\": \"0999888777\",\n  \"address\": \"Admin updated address\",\n  \"marketingOptin\": false\n}"
+      },
+      "parameters": []
+    },
+    {
+      "_id": "req_admin_update_status",
+      "parentId": "fld_admin_customers",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Update Status",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/admin/customers/{{ userId }}/profile/status",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"},
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"ACTIVE\"\n}"
+      },
+      "parameters": []
+    },
+    {
+      "_id": "req_admin_lock",
+      "parentId": "fld_admin_customers",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Lock Customer",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/admin/customers/{{ userId }}/profile/lock",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"}
+      ],
+      "body": {},
+      "parameters": []
+    },
+    {
+      "_id": "req_admin_unlock",
+      "parentId": "fld_admin_customers",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Unlock Customer",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/admin/customers/{{ userId }}/profile/unlock",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"}
+      ],
+      "body": {},
+      "parameters": []
+    },
+    {
+      "_id": "req_admin_search",
+      "parentId": "fld_admin_customers",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Search Customers",
+      "method": "POST",
+      "url": "{{ _.base_url }}/admin/customers/search",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"},
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"phone\": \"\",\n  \"status\": null,\n  \"page\": 0,\n  \"size\": 10,\n  \"sortBy\": \"createdAt\",\n  \"sortDir\": \"desc\"\n}"
+      },
+      "parameters": []
+    },
+    {
+      "_id": "req_admin_activity",
+      "parentId": "fld_admin_customers",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Customer Activity",
+      "method": "GET",
+      "url": "{{ _.base_url }}/admin/customers/{{ userId }}/activity",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"}
+      ],
+      "body": {},
+      "parameters": []
+    },
+    {
+      "_id": "req_admin_audit_logs",
+      "parentId": "fld_admin_customers",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Customer Audit Logs",
+      "method": "GET",
+      "url": "{{ _.base_url }}/admin/customers/{{ userId }}/audit",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"}
+      ],
+      "body": {},
+      "parameters": []
+    },
+    {
+      "_id": "fld_internal",
+      "parentId": "wrk_csfc_customer",
+      "modified": 0,
+      "created": 0,
+      "_type": "request_group",
+      "name": "Internal Bridge",
+      "environment": {},
+      "environmentPropertyOrder": null
+    },
+    {
+      "_id": "req_internal_get",
+      "parentId": "fld_internal",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Get Internal Customer",
+      "method": "GET",
+      "url": "{{ _.base_url }}/internal/customers/{{ userId }}/details",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"}
+      ],
+      "body": {},
+      "parameters": []
+    },
+    {
+      "_id": "req_internal_update",
+      "parentId": "fld_internal",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Update Internal Customer",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/internal/customers/{{ userId }}/details",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"},
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Internal Update\",\n  \"phone\": \"0888123123\",\n  \"address\": \"Internal address\",\n  \"marketingOptin\": false,\n  \"status\": \"ACTIVE\"\n}"
+      },
+      "parameters": []
+    },
+    {
+      "_id": "req_internal_create",
+      "parentId": "fld_internal",
+      "modified": 0,
+      "created": 0,
+      "_type": "request",
+      "name": "Create Internal Customer",
+      "method": "POST",
+      "url": "{{ _.base_url }}/internal/customers/bridge",
+      "headers": [
+        {"name": "Authorization", "value": "Bearer {{ _.admin_access_token }}"},
+        {"name": "Content-Type", "value": "application/json"}
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Internal Customer\",\n  \"email\": \"internal@example.com\",\n  \"password\": \"P@ssw0rd!\",\n  \"phone\": \"0777000000\",\n  \"address\": \"Internal address\",\n  \"marketingOptin\": true,\n  \"status\": \"ACTIVE\"\n}"
+      },
+      "parameters": []
+    }
+  ]
+}

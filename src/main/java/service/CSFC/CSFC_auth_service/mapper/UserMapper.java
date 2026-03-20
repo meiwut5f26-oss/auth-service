@@ -46,6 +46,8 @@ public class UserMapper {
         response.setAddress(user.getAddress());
         response.setPhone(user.getPhone());          // ← added
         response.setStatus(user.getStatus());        // ← added
+        response.setMarketingOptin(user.isMarketingOptin());
+        response.setIsFirstLogin(user.getIsFirstLogin());
         response.setRole(user.getRole() != null ? user.getRole().getName() : null); // ← added
         return response;
     }
@@ -56,6 +58,8 @@ public class UserMapper {
         response.setEmail(user.getEmail());
         response.setRole(user.getRole() != null ? user.getRole().getName() : null);
         response.setIsFirstLogin(user.getIsFirstLogin());
+        response.setStatus(user.getStatus());
+        response.setMarketingOptin(user.isMarketingOptin());
         return response;
     }
 }

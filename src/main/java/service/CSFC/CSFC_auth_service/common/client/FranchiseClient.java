@@ -9,6 +9,6 @@ import service.CSFC.CSFC_auth_service.common.client.dto.ExternalFranchiseRespons
 @FeignClient(name = "franchise-service", url = "${application.config.franchise-service-url}")
 public interface FranchiseClient {
 
-    @GetMapping("/api/v1/franchises/{id}")
-    ExternalFranchiseResponse getFranchiseById(@PathVariable("id") Long id);
+////    @GetMapping("/api/v1/franchises/{id}")
+//    ExternalFranchiseResponse getFranchiseById(@PathVariable("id") Long id);
 }
