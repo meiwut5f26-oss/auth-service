@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import service.CSFC.CSFC_auth_service.common.response.BaseResponse;
 import service.CSFC.CSFC_auth_service.common.security.CustomerUserDetails;
 import service.CSFC.CSFC_auth_service.model.dto.request.CreateUserRequest;
+import service.CSFC.CSFC_auth_service.model.dto.request.UpdateUserRoleRequest;
 import service.CSFC.CSFC_auth_service.model.dto.response.UserResponse;
 import service.CSFC.CSFC_auth_service.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -71,5 +72,15 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(BaseResponse.success("Tạo tài khoản thành công", response));
+    }
+
+    @PreAuthorize("hasAuthority('USER_UPDATE_ROLE')")
+    @PatchMapping("/{id}/role")
+    public ResponseEntity<BaseResponse<String>> updateUserRole(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateUserRoleRequest request
+    ) {
+        userService.updateUserRoleByAdmin(id, request.getRoleName());
+        return ResponseEntity.ok(BaseResponse.success("Cập nhật role thành công", null));
     }
 }

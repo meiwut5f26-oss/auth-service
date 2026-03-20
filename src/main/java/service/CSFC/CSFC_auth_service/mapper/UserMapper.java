@@ -44,11 +44,11 @@ public class UserMapper {
         response.setName(user.getName());
         response.setEmail(user.getEmail());
         response.setAddress(user.getAddress());
-        response.setPhone(user.getPhone());          // ← added
-        response.setStatus(user.getStatus());        // ← added
+        response.setPhone(user.getPhone());          // 	added
+        response.setStatus(user.getStatus());        // 	added
         response.setMarketingOptin(user.isMarketingOptin());
         response.setIsFirstLogin(user.getIsFirstLogin());
-        response.setRole(user.getRole() != null ? user.getRole().getName() : null); // ← added
+        response.setRole(user.getRole() != null ? sanitizeRoleName(user.getRole().getName()) : null); // 	added
         return response;
     }
 
@@ -61,5 +61,9 @@ public class UserMapper {
         response.setStatus(user.getStatus());
         response.setMarketingOptin(user.isMarketingOptin());
         return response;
+    }
+
+    private String sanitizeRoleName(String roleName) {
+        return roleName == null ? null : roleName.replaceAll("\\s+", "");
     }
 }

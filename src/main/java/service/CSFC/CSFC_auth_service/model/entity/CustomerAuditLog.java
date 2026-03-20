@@ -38,5 +38,22 @@ public class CustomerAuditLog {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-}
 
+    @Column(name = "actor_id", length = 36)
+    private UUID actorId;
+
+    @Column(name = "actor_email", length = 150)
+    private String actorEmail;
+
+    @Column(name = "entity", length = 100)
+    private String entity;
+
+    @Column(name = "entity_id", length = 36)
+    private UUID entityId;
+
+    @Column(name = "old_value", columnDefinition = "TEXT")
+    private String oldValue;
+
+    @Column(name = "new_value", columnDefinition = "TEXT")
+    private String newValue;
+}

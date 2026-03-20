@@ -20,12 +20,10 @@ public interface UsersRepository extends JpaRepository<Users, UUID> {
       boolean existsByPhone(String phone);
 
       @Query("SELECT u FROM Users u " +
-              "WHERE (:name IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
-              "AND (:email IS NULL OR LOWER(u.email) LIKE LOWER(CONCAT('%', :email, '%'))) " +
-              "AND (:phone IS NULL OR u.phone LIKE CONCAT('%', :phone, '%')) " +
-              "AND (:status IS NULL OR LOWER(u.status) = LOWER(:status)) " +
-              "AND (:onlyCustomers = false OR LOWER(u.role.name) = 'customer')")
-      Page<Users> searchUsers(String name, String email, String phone, String status, boolean onlyCustomers, Pageable pageable);
+              "WHERE (:name IS NULL OR u.name ILIKE CONCAT('%', :name, '%')) " +
+              "AND (:email IS NULL OR u.email ILIKE CONCAT('%', :email, '%')) " +
+              "AND (:phone IS NULL OR u.phone LIKE CONCAT('%', :phone, '%'))")
+      Page<Users> searchUsers(String name, String email, String phone, Pageable pageable);
 
       @Query("SELECT CASE WHEN COUNT(u)>0 THEN true ELSE false END FROM Users u WHERE u.phone = :phone AND u.id <> :excludeId")
       boolean existsByPhoneAndIdNot(String phone, UUID excludeId);

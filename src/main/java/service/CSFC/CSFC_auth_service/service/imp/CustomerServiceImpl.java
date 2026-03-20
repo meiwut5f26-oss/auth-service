@@ -1,11 +1,16 @@
 package service.CSFC.CSFC_auth_service.service.imp;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +36,7 @@ import service.CSFC.CSFC_auth_service.repository.CustomerAuditLogRepository;
 import service.CSFC.CSFC_auth_service.repository.RolesRepository;
 import service.CSFC.CSFC_auth_service.repository.UsersRepository;
 import service.CSFC.CSFC_auth_service.service.CustomerService;
+import service.CSFC.CSFC_auth_service.common.security.CustomerUserDetails;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,6 +54,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final UserMapper userMapper;
     private final OrderClient orderClient;
     private final CustomerAuditLogRepository auditLogRepository;
+    private final ObjectMapper objectMapper;
     private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9]{8,15}$");
 
     @Override
@@ -60,16 +67,16 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public UserResponse updateMyProfile(UUID userId, UpdateMyProfileRequest request) {
         Users user = getUserOrThrow(userId);
+        String oldSnapshot = toJsonSafe(userMapper.toResponse(user));
         applyProfileUpdate(user, request.getName(), request.getPhone(), request.getAddress(), request.getMarketingOptin(), null);
         Users saved = usersRepository.save(user);
-        logAudit(userId, "CUSTOMER_SELF_UPDATE", "Khách hàng tự cập nhật hồ sơ");
+        logAudit(userId, "CUSTOMER_SELF_UPDATE", "Khách hàng tự cập nhật hồ sơ", oldSnapshot, toJsonSafe(userMapper.toResponse(saved)), "USER", userId);
         return userMapper.toResponse(saved);
     }
 
     @Override
     public List<UserResponse> getAllCustomers() {
         return usersRepository.findAll().stream()
-                .filter(this::isCustomer)
                 .map(userMapper::toResponse)
                 .toList();
     }
@@ -83,9 +90,10 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public UserResponse adminUpdateCustomerProfile(UUID userId, AdminUpdateCustomerProfileRequest request) {
         Users user = getUserOrThrow(userId);
+        String oldSnapshot = toJsonSafe(userMapper.toResponse(user));
         applyProfileUpdate(user, request.getName(), request.getPhone(), request.getAddress(), request.getMarketingOptin(), request.getFranchiseId());
         Users saved = usersRepository.save(user);
-        logAudit(userId, "ADMIN_UPDATE_PROFILE", "Admin cập nhật hồ sơ khách hàng");
+        logAudit(userId, "ADMIN_UPDATE_PROFILE", "Admin cập nhật hồ sơ khách hàng", oldSnapshot, toJsonSafe(userMapper.toResponse(saved)), "USER", userId);
         return userMapper.toResponse(saved);
     }
 
@@ -93,9 +101,10 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public void updateCustomerStatus(UUID userId, CustomerStatus status) {
         Users user = getUserOrThrow(userId);
+        String oldSnapshot = toJsonSafe(userMapper.toResponse(user));
         user.setStatus(status);
         usersRepository.save(user);
-        logAudit(userId, "STATUS_CHANGE", "Thay đổi trạng thái: " + status);
+        logAudit(userId, "STATUS_CHANGE", "Thay đổi trạng thái: " + status, oldSnapshot, toJsonSafe(userMapper.toResponse(user)), "USER", userId);
     }
 
     @Override
@@ -105,35 +114,76 @@ public class CustomerServiceImpl implements CustomerService {
         if (user.getStatus() == CustomerStatus.LOCKED) {
             throw new BadRequestException("Tài khoản đã bị khóa");
         }
+        String oldSnapshot = toJsonSafe(userMapper.toResponse(user));
         user.setStatus(CustomerStatus.LOCKED);
         usersRepository.save(user);
-        logAudit(userId, "LOCK", "Khóa tài khoản khách hàng");
+        logAudit(userId, "LOCK", "Khóa tài khoản khách hàng", oldSnapshot, toJsonSafe(userMapper.toResponse(user)), "USER", userId);
     }
 
     @Override
     @Transactional
     public void unlockCustomer(UUID userId) {
         Users user = getUserOrThrow(userId);
+        String oldSnapshot = toJsonSafe(userMapper.toResponse(user));
         user.setStatus(CustomerStatus.ACTIVE);
         usersRepository.save(user);
-        logAudit(userId, "UNLOCK", "Mở khóa tài khoản khách hàng");
+        logAudit(userId, "UNLOCK", "Mở khóa tài khoản khách hàng", oldSnapshot, toJsonSafe(userMapper.toResponse(user)), "USER", userId);
     }
 
     @Override
     public Page<UserResponse> searchCustomers(CustomerSearchRequest request) {
-        String status = request.getStatus() != null ? request.getStatus().name() : null;
+        CustomerStatus status = request.getStatus();
         Sort sort = "desc".equalsIgnoreCase(request.getSortDir())
                 ? Sort.by(request.getSortBy()).descending()
                 : Sort.by(request.getSortBy()).ascending();
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
-        return usersRepository.searchUsers(
-                        normalize(request.getName()),
-                        normalize(request.getEmail()),
-                        normalize(request.getPhone()),
-                        status,
-                        true,
-                        pageable)
-                .map(userMapper::toResponse);
+
+        List<UserResponse> filtered = usersRepository.findAll().stream()
+                .filter(u -> matches(u.getName(), request.getName()))
+                .filter(u -> matches(u.getEmail(), request.getEmail()))
+                .filter(u -> matches(u.getPhone(), request.getPhone()))
+                .filter(u -> status == null || status.equals(u.getStatus()))
+                .map(userMapper::toResponse)
+                .toList();
+
+        filtered = filtered.stream()
+                .sorted((a, b) -> sort.getOrderFor(request.getSortBy()).isAscending()
+                        ? compareByField(a, b, request.getSortBy())
+                        : compareByField(b, a, request.getSortBy()))
+                .toList();
+
+        int start = Math.min((int) pageable.getOffset(), filtered.size());
+        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+        List<UserResponse> pageSlice = filtered.subList(start, end);
+
+        return new PageImpl<>(pageSlice, pageable, filtered.size());
+    }
+
+    private boolean matches(String field, String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return true;
+        }
+        return field != null && field.toLowerCase().contains(keyword.trim().toLowerCase());
+    }
+
+    private int compareByField(UserResponse a, UserResponse b, String sortBy) {
+        if ("createdAt".equalsIgnoreCase(sortBy)) {
+            return 0; // createdAt not available in response; keep stable order
+        }
+        if ("name".equalsIgnoreCase(sortBy)) {
+            return nullSafe(a.getName()).compareToIgnoreCase(nullSafe(b.getName()));
+        }
+        if ("email".equalsIgnoreCase(sortBy)) {
+            return nullSafe(a.getEmail()).compareToIgnoreCase(nullSafe(b.getEmail()));
+        }
+        if ("phone".equalsIgnoreCase(sortBy)) {
+            return nullSafe(a.getPhone()).compareToIgnoreCase(nullSafe(b.getPhone()));
+        }
+        return 0;
+    }
+
+    private String nullSafe(String value) {
+        return value == null ? "" : value;
     }
 
     @Override
@@ -151,7 +201,16 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public List<CustomerAuditLogResponse> getCustomerAuditLogs(UUID userId) {
         return auditLogRepository.findTop50ByUserIdOrderByCreatedAtDesc(userId).stream()
-                .map(log -> new CustomerAuditLogResponse(log.getAction(), log.getDetail(), log.getCreatedAt()))
+                .map(log -> new CustomerAuditLogResponse(
+                        log.getAction(),
+                        log.getDetail(),
+                        log.getCreatedAt(),
+                        log.getActorId(),
+                        log.getActorEmail(),
+                        log.getEntity(),
+                        log.getEntityId(),
+                        log.getOldValue(),
+                        log.getNewValue()))
                 .toList();
     }
 
@@ -164,12 +223,13 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public UserResponse updateInternalCustomer(UUID userId, AdminUpdateCustomerProfileRequest request) {
         Users user = getUserOrThrow(userId);
+        String oldSnapshot = toJsonSafe(userMapper.toResponse(user));
         applyProfileUpdate(user, request.getName(), request.getPhone(), request.getAddress(), request.getMarketingOptin(), request.getFranchiseId());
         if (request.getStatus() != null) {
             user.setStatus(request.getStatus());
         }
         Users saved = usersRepository.save(user);
-        logAudit(userId, "INTERNAL_UPDATE", "Service nội bộ cập nhật hồ sơ khách hàng");
+        logAudit(userId, "INTERNAL_UPDATE", "Service nội bộ cập nhật hồ sơ khách hàng", oldSnapshot, toJsonSafe(userMapper.toResponse(saved)), "USER", userId);
         return userMapper.toResponse(saved);
     }
 
@@ -206,16 +266,38 @@ public class CustomerServiceImpl implements CustomerService {
         user.setRole(customerRole);
 
         Users saved = usersRepository.save(user);
-        logAudit(saved.getId(), "INTERNAL_CREATE", "Service nội bộ tạo khách hàng");
+        logAudit(saved.getId(), "INTERNAL_CREATE", "Service nội bộ tạo khách hàng", null, toJsonSafe(userMapper.toResponse(saved)), "USER", saved.getId());
         return userMapper.toResponse(saved);
     }
 
-    private void logAudit(UUID userId, String action, String detail) {
+    private void logAudit(UUID userId, String action, String detail, String oldValue, String newValue, String entity, UUID entityId) {
         CustomerAuditLog log = new CustomerAuditLog();
         log.setUserId(userId);
         log.setAction(action);
         log.setDetail(detail);
+        log.setOldValue(oldValue);
+        log.setNewValue(newValue);
+        log.setEntity(entity);
+        log.setEntityId(entityId);
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof CustomerUserDetails principal) {
+            log.setActorId(principal.getUser().getId());
+            log.setActorEmail(principal.getUser().getEmail());
+        }
+
         auditLogRepository.save(log);
+    }
+
+    private String toJsonSafe(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
     }
 
     private Users getUserOrThrow(UUID userId) {
@@ -278,6 +360,10 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private boolean isCustomer(Users user) {
-        return user.getRole() != null && "CUSTOMER".equalsIgnoreCase(user.getRole().getName());
+        return user.getRole() != null && "CUSTOMER".equalsIgnoreCase(normalizeRoleName(user.getRole().getName()));
+    }
+
+    private String normalizeRoleName(String roleName) {
+        return roleName == null ? null : roleName.replaceAll("\\s+", "").toUpperCase();
     }
 }

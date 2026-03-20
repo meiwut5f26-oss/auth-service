@@ -99,4 +99,27 @@ public class UserServiceImp implements UserService {
 
         usersRepository.delete(user);
     }
+
+    @Override
+    @Transactional
+    public void updateUserRoleByAdmin(UUID userId, String roleName) {
+
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
+
+        String targetRole = StringUtils.hasText(roleName) ? roleName.trim() : "";
+        if (!StringUtils.hasText(targetRole)) {
+            throw new BadRequestException("Role không được để trống");
+        }
+
+        if ("CUSTOMER".equalsIgnoreCase(targetRole)) {
+            throw new BadRequestException("Không được gán role CUSTOMER cho người dùng hiện có");
+        }
+
+        Roles role = rolesRepository.findByName(targetRole)
+                .orElseThrow(() -> new BadRequestException("Không tìm thấy role: " + targetRole));
+
+        user.setRole(role);
+        usersRepository.save(user);
+    }
 }

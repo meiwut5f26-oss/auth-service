@@ -13,4 +13,6 @@ public interface UserService {
     void deActivateUserByAdmin(UUID userId);
 
     UserResponse createUserWithRoleByAdmin(CreateUserRequest request);
+
+    void updateUserRoleByAdmin(UUID userId, String roleName);
 }
