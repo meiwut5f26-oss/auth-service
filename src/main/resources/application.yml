@@ -94,5 +94,7 @@ management:
       enabled: true
     db:
       enabled: false
+    discovery:
+      enabled: true
     mail:
       enabled: false
