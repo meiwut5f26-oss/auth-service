@@ -22,6 +22,7 @@ public class RbpController {
 
     private final RolesService rolesService;
     private final AdminPermissionsService permissionsService;
+
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody ServiceRbpRequest request) {
         log.info("RBP registration request received for service: {}", request.getServiceName());

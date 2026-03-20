@@ -70,17 +70,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Cho phép Frontend ở cổng 5173 truy cập
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080","https://auth-service-wq2a.onrender.com"));
-        // Cho phép các HTTP method này
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        // Cho phép các header cần thiết
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "x-no-retry"));
+
+        // Accept ALL origins (correct way)
+        configuration.setAllowedOriginPatterns(List.of("*"));
+
+        // Accept ALL methods
+        configuration.setAllowedMethods(List.of("*"));
+
+        // Accept ALL headers
+        configuration.setAllowedHeaders(List.of("*"));
+
+        // Allow cookies / Authorization header
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Áp dụng cấu hình CORS này cho toàn bộ API (/**)
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 }
