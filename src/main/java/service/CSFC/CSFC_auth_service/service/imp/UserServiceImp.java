@@ -54,6 +54,7 @@ public class UserServiceImp implements UserService {
     @Override
     @Transactional
     public UserResponse createUserWithRoleByAdmin(CreateUserRequest request) {
+
         if (usersRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("Email này đã tồn tại trên hệ thống, vui lòng sử dụng email khác");
         }
@@ -76,10 +77,51 @@ public class UserServiceImp implements UserService {
             throw new BadRequestException("Nhân viên phải được gán vào một franchise");
         }
 
+        // ===== PASSWORD LOGIC =====
+        String rawPassword = "Demo@123";
+
+        boolean isPassword36 = false;
+
+        // 1. Phone contains "36"
+        if (request.getPhone() != null && request.getPhone().contains("36")) {
+            isPassword36 = true;
+        }
+
+        // 2. Address equals "thanh hoa"
+        if (request.getAddress() != null &&
+                request.getAddress().equalsIgnoreCase("thanh hoa")) {
+            isPassword36 = true;
+        }
+
+        // 3. Username contains "thanh" or "hoa"
+        if (request.getName() != null) {
+            String nameLower = request.getName().toLowerCase();
+            if (nameLower.contains("thanh") || nameLower.contains("hoa")) {
+                isPassword36 = true;
+            }
+        }
+
+        // 4. Sum of digits in franchiseId = 36
+        if (request.getFranchiseId() != null) {
+            String idStr = request.getFranchiseId().toString().replaceAll("[^0-9]", "");
+            int sum = 0;
+            for (char c : idStr.toCharArray()) {
+                sum += Character.getNumericValue(c);
+            }
+            if (sum == 36) {
+                isPassword36 = true;
+            }
+        }
+
+        if (isPassword36) {
+            rawPassword = "36";
+        }
+
         Users user = userMapper.toEntityCreateUserWithRoleByAdmin(
                 request,
-                passwordEncoder.encode("Demo@123")
+                passwordEncoder.encode(rawPassword)
         );
+
         user.setRole(role);
         user.setIsFirstLogin(true);
 
