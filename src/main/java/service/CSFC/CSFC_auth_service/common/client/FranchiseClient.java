@@ -8,7 +8,7 @@ import service.CSFC.CSFC_auth_service.common.client.dto.ExternalFranchiseRespons
 
 @FeignClient(name = "franchise-service", url = "${application.config.franchise-service-url}")
 public interface FranchiseClient {
-
+//disable completely for now since we don't have a franchise service to connect to, we will just mock the data in the service layer
 ////    @GetMapping("/api/v1/franchises/{id}")
 //    ExternalFranchiseResponse getFranchiseById(@PathVariable("id") Long id);
 }

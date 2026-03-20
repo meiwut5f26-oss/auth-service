@@ -16,14 +16,13 @@ import java.util.UUID;
 
 @Tag(name = "Internal - Customer Bridge", description = "Endpoint nội bộ cho các service khác")
 @RestController
-@RequestMapping("/api/auth-service/internal/customers")
+@RequestMapping("/api/auth-service/public/internal/customers")
 @RequiredArgsConstructor
 public class InternalCustomerController {
 
     private final CustomerService customerService;
 
     @GetMapping("/{userId}/details")
-    @PreAuthorize("hasAuthority('INTERNAL_CUSTOMER_READ')")
     public ResponseEntity<BaseResponse<UserResponse>> getInternalCustomer(@PathVariable UUID userId) {
         return ResponseEntity.ok(
                 BaseResponse.success("Lấy thông tin khách hàng thành công", customerService.getInternalCustomer(userId))
@@ -31,7 +30,6 @@ public class InternalCustomerController {
     }
 
     @PutMapping("/{userId}/details")
-    @PreAuthorize("hasAuthority('INTERNAL_CUSTOMER_WRITE')")
     public ResponseEntity<BaseResponse<UserResponse>> updateInternalCustomer(
             @PathVariable UUID userId,
             @Valid @RequestBody AdminUpdateCustomerProfileRequest request
@@ -42,7 +40,6 @@ public class InternalCustomerController {
     }
 
     @PostMapping("/bridge")
-    @PreAuthorize("hasAuthority('INTERNAL_CUSTOMER_WRITE')")
     public ResponseEntity<BaseResponse<UserResponse>> createInternalCustomer(
             @Valid @RequestBody InternalCustomerCreateRequest request
     ) {

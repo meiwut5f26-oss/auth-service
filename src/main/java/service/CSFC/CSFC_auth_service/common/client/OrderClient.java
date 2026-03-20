@@ -9,7 +9,7 @@ import java.util.List;
 
 @FeignClient(name = "order-service", url = "${application.config.order-service-url}")
 public interface OrderClient {
-
+//will add once there is an order service to connect to, for now we will just mock the data in the service layer
     @GetMapping("/api/v1/orders/{id}")
     ExternalOrderResponse getOrderById(@PathVariable("id") String id);
 

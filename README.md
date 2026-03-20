@@ -1,18 +1,15 @@
 # CSFC Auth Service
 
-Spring Boot authentication and authorization service for CSFC. Provides registration/login, JWT issuance, user/role/permission management, and seeding for initial roles/permissions.
+Spring Boot authentication/authorization service for CSFC. Handles registration/login/JWT, role/permission seeding, and customer profile/admin/internal bridge APIs exposed behind the gateway prefix `/api/auth-service`.
 
 ## Quick Start
 ```powershell
-# Build
 ./mvnw.cmd clean package
-
-# Run (after setting env vars or .env)
 java -jar target/*.jar
 ```
 
 ## Required Environment
-The app reads from `.env` (imported by `application.yml`) or process env vars.
+Reads from `.env` (imported by `application.yml`) or process env vars:
 - `SERVER_PORT`
 - `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` (PostgreSQL)
 - `JWT_SECRET` (required)
@@ -23,54 +20,78 @@ The app reads from `.env` (imported by `application.yml`) or process env vars.
 - Eureka (optional): `EUREKA_CLIENT_ENABLED`, `EUREKA_URL`
 
 ## Seeding Behavior
-Defined in `src/main/java/service/CSFC/CSFC_auth_service/common/config/DataInitializer.java`.
-- Roles created if missing: `ADMIN`, `CUSTOMER`, `STAFF`
-- Permissions created if missing: `PERMISSION_ASSIGN`, `PERMISSION_VIEW`, `ROLE_CREATE`, `ROLE_UPDATE`, `ROLE_VIEW`, `ROLE_DELETE`, `USER_DELETE`, `USER_UPDATE_STATUS`, `USER_CREATE`, `USER_READ_SELF`
+`common/config/DataInitializer.java` seeds if missing:
+- Roles: `ADMIN`, `CUSTOMER`, `STAFF`
+- Permissions: `PERMISSION_ASSIGN`, `PERMISSION_VIEW`, `ROLE_CREATE`, `ROLE_UPDATE`, `ROLE_VIEW`, `ROLE_DELETE`, `USER_DELETE`, `USER_UPDATE_STATUS`, `USER_CREATE`, `USER_READ_SELF`, `CUSTOMER_PROFILE_UPDATE_SELF`, `CUSTOMER_PROFILE_LIST`, `CUSTOMER_PROFILE_VIEW`, `CUSTOMER_PROFILE_UPDATE`, `CUSTOMER_PROFILE_STATUS_UPDATE`, `CUSTOMER_PROFILE_LOCK`, `CUSTOMER_PROFILE_UNLOCK`, `CUSTOMER_SEARCH`, `CUSTOMER_ACTIVITY_VIEW`, `INTERNAL_CUSTOMER_READ`, `INTERNAL_CUSTOMER_WRITE`, `CUSTOMER_AUDIT_VIEW`
 - Role → permissions:
   - `ADMIN`: all above
-  - `STAFF`: `USER_READ_SELF`
-  - `CUSTOMER`: `USER_READ_SELF`
-- Admin user seeding (if `ADMIN_INIT_ENABLED=true` and email/password provided): creates an admin account with role `ADMIN_INIT_ROLE` (default `ADMIN`).
+  - `STAFF`: `USER_READ_SELF`, `CUSTOMER_PROFILE_VIEW`
+  - `CUSTOMER`: `USER_READ_SELF`, `CUSTOMER_PROFILE_UPDATE_SELF`
+- Admin seeding (if enabled and email/password provided) creates an admin with role `ADMIN_INIT_ROLE`.
 
-## Key Endpoints
-`/api/auth-service/auth`
+## Key Endpoints (gateway prefix `/api/auth-service`)
+`/auth`
 - `POST /register` (public)
 - `POST /login` (public)
 - `POST /refresh` (public)
 - `POST /forgot-password` (public)
 - `POST /reset-password` (public)
 
-`/api/auth-service/users`
+`/users`
 - `GET /me` (`USER_READ_SELF`)
 - `DELETE /{id}` (`USER_DELETE`)
 - `PATCH /{id}/deactivate` (`USER_UPDATE_STATUS`)
 - `POST /create-account` (`USER_CREATE`)
 
-`/api/auth-service/roles`
+`/roles`
 - `POST /create` (`ROLE_CREATE`)
 - `POST /update` (`ROLE_UPDATE`)
 - `GET /` (`ROLE_VIEW`)
 - `POST /delete/{id}` (`ROLE_DELETE`)
 
-`/api/auth-service/admin/roles`
+`/admin/roles`
 - `POST /{roleId}/permissions?permissionName=...` (`PERMISSION_ASSIGN`)
 - `GET /permissions` (`PERMISSION_VIEW`)
 - `GET /{roleId}/permissions` (`PERMISSION_VIEW`)
 
+`/customers` (customer self)
+- `GET /me/details` (`USER_READ_SELF`)
+- `PUT /me/details` (`CUSTOMER_PROFILE_UPDATE_SELF`)
+
+`/admin/customers`
+- `GET /all-profile` (`CUSTOMER_PROFILE_LIST`)
+- `GET /{userId}/profile` (`CUSTOMER_PROFILE_VIEW`)
+- `PUT /{userId}/profile` (`CUSTOMER_PROFILE_UPDATE`)
+- `PATCH /{userId}/profile/status` (`CUSTOMER_PROFILE_STATUS_UPDATE`)
+- `PATCH /{userId}/profile/lock` (`CUSTOMER_PROFILE_LOCK`)
+- `PATCH /{userId}/profile/unlock` (`CUSTOMER_PROFILE_UNLOCK`)
+- `POST /search` (`CUSTOMER_SEARCH`)
+- `GET /{userId}/activity` (`CUSTOMER_ACTIVITY_VIEW`)
+- `GET /{userId}/audit` (`CUSTOMER_AUDIT_VIEW`)
+
+`/internal/customers`
+- `GET /{userId}/details` (`INTERNAL_CUSTOMER_READ`)
+- `PUT /{userId}/details` (`INTERNAL_CUSTOMER_WRITE`)
+- `POST /bridge` (`INTERNAL_CUSTOMER_WRITE`)
+
+`/public/rbp`
+- `POST /register` (role/permission bootstrap for peer services)
+
 ## Security
 - Spring Security with JWT and custom `AuthorizationFilter`.
-- Authorities from `CustomerUserDetails`: `ROLE_<NAME>` plus each permission.
-- `isEnabled` now checks `CustomerStatus.ACTIVE`.
+- Authorities derived from `CustomerUserDetails`: `ROLE_<NAME>` plus all permissions on the role.
+- `isEnabled` checks `CustomerStatus.ACTIVE`.
 
-## Known Risks / Checks
-- Ensure `JWT_SECRET` is set; startup will fail otherwise.
-- DB connection must be valid (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`).
-- Admin seeding requires `ADMIN_INIT_ENABLED=true` and admin email/password.
-- Hard-coded temp password in `createUserWithRoleByAdmin` is `Demo@123`; consider rotating or providing a generated password.
+## Notes / Risks
+- `createUserWithRoleByAdmin` still uses a temp password `Demo@123` (consider rotating/generating).
+- Ensure DB is reachable and `JWT_SECRET` is set; startup will fail otherwise.
+- New audit logging writes to `customer_audit_logs`; ensure the table exists/migrated.
 
 ## Verification
-- Build: `./mvnw.cmd clean package`
-- Adjust `.env` as needed; example:
+```powershell
+./mvnw.cmd clean package
+```
+
 ```env
 SERVER_PORT=8080
 DB_URL=jdbc:postgresql://localhost:5432/csfc_auth
@@ -81,4 +102,3 @@ ADMIN_INIT_ENABLED=true
 ADMIN_INIT_EMAIL=admin@example.com
 ADMIN_INIT_PASSWORD=StrongPass123!
 ```
-
