@@ -1,43 +1,48 @@
 package service.CSFC.CSFC_auth_service.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import service.CSFC.CSFC_auth_service.service.AuthenticationService;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import service.CSFC.CSFC_auth_service.common.response.BaseResponse;
+import service.CSFC.CSFC_auth_service.model.dto.request.ForgotPasswordRequest;
+import service.CSFC.CSFC_auth_service.model.dto.request.ResetPasswordRequest;
+import service.CSFC.CSFC_auth_service.model.dto.request.VerifyOtpRequest;
+import service.CSFC.CSFC_auth_service.model.dto.response.ApiResponse;
+import service.CSFC.CSFC_auth_service.service.PasswordService;
+
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
+@RequestMapping("/api/auth-service/password")
 public class PasswordController {
 
-    private final AuthenticationService authenticationService;
+    private final PasswordService passwordService;
 
-    @GetMapping("/reset-password")
-    public String showResetForm(@RequestParam String token, Model model) {
-        model.addAttribute("token", token);
-        return "reset-password";
+    @PostMapping("/forgot")
+    @Operation(summary = "Quên mật khẩu", description = "Gửi mã OTP 6 số về email của người dùng")
+    public ResponseEntity<BaseResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordService.requestForgotPassword(request);
+        return ResponseEntity.ok(BaseResponse.success("Mã xác thực đã được gửi đến email của bạn", null));
     }
 
-    @PostMapping("/reset-password")
-    public String handleReset(@RequestParam String token,
-                              @RequestParam String newPassword,
-                              RedirectAttributes redirectAttributes) {
-        try {
-            authenticationService.resetPassword(new service.CSFC.CSFC_auth_service.model.dto.request.ResetPasswordRequest(token, newPassword));
-            redirectAttributes.addFlashAttribute("message", "Đặt lại mật khẩu thành công!");
-            return "redirect:/reset-success";
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/reset-password?token=" + token;
-        }
+    @PostMapping("/verify-otp")
+    @Operation(summary = "Xác nhận OTP", description = "Xác thực mã OTP và nhận token để đổi mật khẩu")
+    public ResponseEntity<BaseResponse<Map<String, String>>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        String resetToken = passwordService.verifyOtp(request);
+        return ResponseEntity.ok(BaseResponse.success("Xác thực OTP thành công", Map.of("resetToken", resetToken)));
     }
 
-    @GetMapping("/reset-success")
-    public String successPage() {
-        return "reset-success";
+    @PostMapping("/reset")
+    @Operation(summary = "Đặt lại mật khẩu", description = "Sử dụng reset token để đặt lại mật khẩu mới")
+    public ResponseEntity<BaseResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordService.resetPassword(request);
+        return ResponseEntity.ok(BaseResponse.success("Đổi mật khẩu thành công. Vui lòng đăng nhập lại", null));
     }
 }
 

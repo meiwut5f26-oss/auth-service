@@ -1,6 +1,7 @@
 package service.CSFC.CSFC_auth_service.controller;
 
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -47,21 +48,11 @@ public class AuthenticationController {
         return ResponseEntity.ok(BaseResponse.success("Làm mới accessToken thành công", authResponse));
     }
 
-    @PostMapping("/forgot-password")
-    public ResponseEntity<BaseResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        authenticationService.forgotPassword(request);
-        return ResponseEntity.ok(BaseResponse.success("Yêu cầu đặt lại mật khẩu đã được gửi đến email của bạn", null));
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<BaseResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        authenticationService.resetPassword(request);
-        return ResponseEntity.ok(BaseResponse.success("Đặt lại mật khẩu thành công", null));
-    }
 
     @PostMapping("/logout")
-    public ResponseEntity<BaseResponse<String>> logout(@AuthenticationPrincipal UserDetails userDetails) {
-        authenticationService.logout(userDetails);
+    @Operation(summary = "Đăng xuất", description = "Đăng xuất người dùng và vô hiệu hóa token")
+    public ResponseEntity<BaseResponse<Void>> logout(@RequestHeader(value = "Authorization", required = false) String token) {
+        authenticationService.logout(token);
         return ResponseEntity.ok(BaseResponse.success("Đăng xuất thành công", null));
     }
 }

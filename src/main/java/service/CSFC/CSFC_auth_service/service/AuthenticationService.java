@@ -13,9 +13,13 @@ public interface AuthenticationService {
 
     AuthResponse refreshToken(RefreshTokenRequest request);
 
-    void forgotPassword(ForgotPasswordRequest request);
+    void saveRefreshToken(String username, String refreshToken, long expirationMillis);
 
-    void resetPassword(ResetPasswordRequest request);
+    boolean validateRefreshToken(String refreshToken);
 
-    void logout(UserDetails userDetails);
+    void deleteRefreshToken(String refreshToken);
+
+    void logout(String token);
+
+    void deleteRefreshTokenByUsername(String username);
 }
