@@ -8,6 +8,12 @@ application:
     franchise-service-url: ${FRANCHISE_SERVICE_URL}
 
 spring:
+  data:
+    redis:
+      url: ${REDIS_URL}
+      ssl:
+        enabled: true
+
   application:
     name: csfc-auth-service
   config:
@@ -47,11 +53,8 @@ spring:
             enable: true
           ssl:
             trust: smtp.gmail.com
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
+
+
 app:
   admin-init:
     enabled: ${ADMIN_INIT_ENABLED:false}
