@@ -37,3 +37,4 @@ build/
 # Optional: local IDE and build artifacts
 target/
 *.log
+.env
