@@ -1,8 +1,10 @@
 package service.CSFC.CSFC_auth_service.service.imp;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import service.CSFC.CSFC_auth_service.common.exception.BadRequestException;
@@ -35,6 +37,10 @@ public class AuthenticationServiceImp implements AuthenticationService {
     private final UserMapper userMapper;
     private final EmailService emailService;
     private final RolesRepository rolesRepository;
+
+    @Value("${app.reset-password.base-url}")
+    private String resetPasswordBaseUrl;
+
     @Override
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
@@ -97,19 +103,28 @@ public class AuthenticationServiceImp implements AuthenticationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản với email: " + request.getEmail()));
 
         String resetToken = jwtService.generatePasswordResetToken(user.getEmail());
-        String resetLink = "http://localhost:5173/reset-password?token=" + resetToken;
+        String resetLink = resetPasswordBaseUrl + "/reset-password?token=" + resetToken;
         emailService.sendEmail(user.getEmail(), resetLink);
     }
 
     @Override
     public void resetPassword(ResetPasswordRequest request) {
-        String email = jwtService.extractUsername(request.getToken());
+        String email = jwtService.validatePasswordResetToken(request.getToken());
         Users user = usersRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản với email: " + email));
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setRefreshToken(null);
         usersRepository.save(user);
 
+    }
+
+    @Override
+    public void logout(UserDetails userDetails) {
+        String email = userDetails.getUsername();
+        Users user = usersRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản: " + email));
+        user.setRefreshToken(null);
+        usersRepository.save(user);
     }
 
 

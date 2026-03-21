@@ -58,4 +58,10 @@ public class AuthenticationController {
         authenticationService.resetPassword(request);
         return ResponseEntity.ok(BaseResponse.success("Đặt lại mật khẩu thành công", null));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<BaseResponse<String>> logout(@AuthenticationPrincipal UserDetails userDetails) {
+        authenticationService.logout(userDetails);
+        return ResponseEntity.ok(BaseResponse.success("Đăng xuất thành công", null));
+    }
 }

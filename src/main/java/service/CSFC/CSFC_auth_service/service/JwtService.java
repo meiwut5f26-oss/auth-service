@@ -20,4 +20,6 @@ public interface JwtService {
     Date extractExpiration(String token);
 
     boolean isTokenValid(String token, UserDetails userDetails);
+
+    String validatePasswordResetToken(String token);
 }

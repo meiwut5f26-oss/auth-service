@@ -1,6 +1,8 @@
 package service.CSFC.CSFC_auth_service.service.imp;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import service.CSFC.CSFC_auth_service.common.exception.UnauthorizedException;
 import service.CSFC.CSFC_auth_service.common.security.CustomerUserDetails;
 import service.CSFC.CSFC_auth_service.service.JwtService;
 
@@ -120,5 +123,21 @@ public class JwtServiceImp implements JwtService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    }
+
+    @Override
+    public String validatePasswordResetToken(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            Date expiration = claims.getExpiration();
+            if (expiration != null && expiration.before(new Date())) {
+                throw new UnauthorizedException("Token đặt lại mật khẩu đã hết hạn");
+            }
+            return claims.getSubject();
+        } catch (ExpiredJwtException e) {
+            throw new UnauthorizedException("Token đặt lại mật khẩu đã hết hạn");
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new UnauthorizedException("Token đặt lại mật khẩu không hợp lệ");
+        }
     }
 }

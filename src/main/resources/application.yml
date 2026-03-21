@@ -53,6 +53,8 @@ app:
     password: ${ADMIN_INIT_PASSWORD:}
     name: ${ADMIN_INIT_NAME:System Admin}
     role-name: ${ADMIN_INIT_ROLE:ADMIN}
+  reset-password:
+    base-url: ${RESET_PASSWORD_BASE_URL:https://auth-service-wq2a.onrender.com}
 
 eureka:
   client:
