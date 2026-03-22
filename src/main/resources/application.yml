@@ -54,6 +54,10 @@ spring:
           ssl:
             trust: smtp.gmail.com
 
+mailersend:
+  api-key: ${MAILERSEND_API_KEY}
+  from: ${MAIL_FROM}
+  from-name: ${MAIL_FROM_NAME:CSFC Auth Service}
 
 app:
   admin-init:
