@@ -1,9 +1,9 @@
 package service.CSFC.CSFC_auth_service.service.imp;
 
+import com.resend.Resend;
+import com.resend.services.emails.model.CreateEmailOptions;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import service.CSFC.CSFC_auth_service.service.EmailService;
@@ -12,23 +12,29 @@ import service.CSFC.CSFC_auth_service.service.EmailService;
 @RequiredArgsConstructor
 public class EmailServiceImp implements EmailService {
 
-    private final JavaMailSender mailSender;
+    @Value("${resend.api-key}")
+    private String resendApiKey;
 
-    @Async //  Giúp gửi mail ở luồng ngầm, không block API
+    @Value("${resend.from-email}")
+    private String fromEmail;
+
+    @Async
     @Override
     public void sendEmail(String toEmail, String otp) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(toEmail);
-            message.setSubject("Mã xác nhận quên mật khẩu - Hệ thống Quản lý Bồi thường");
-            message.setText("Xin chào,\n\n" +
-                    "Bạn đã yêu cầu đặt lại mật khẩu. Mã OTP của bạn là: " + otp + "\n\n" +
-                    "Mã này có hiệu lực trong vòng 5 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.\n\n" +
-                    "Trân trọng,\nBan Quản trị Hệ thống.");
+            Resend resend = new Resend(resendApiKey);
 
-            mailSender.send(message);
+            // Đổi SendEmailRequest thành CreateEmailOptions
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from(fromEmail)
+                    .to(toEmail)
+                    .subject("Mã xác nhận OTP - CSFC")
+                    .html("<strong>Mã OTP của bạn là: " + otp + "</strong><br>Mã có hiệu lực trong 5 phút.")
+                    .build();
+
+            resend.emails().send(params);
         } catch (Exception e) {
-            System.err.println("Lỗi khi gửi email đến " + toEmail + ": " + e.getMessage());
+            System.err.println("Lỗi Resend API: " + e.getMessage());
         }
     }
 }
