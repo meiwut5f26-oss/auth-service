@@ -89,6 +89,7 @@ public class DataInitializer implements ApplicationRunner {
         seedRoles();
         seedPermissions();
         seedRolePermissions();
+        attachAllPermissionsToAdmin();
 
         if (!enabled) {
             log.info("Admin init is disabled. Skipping admin seeding.");
@@ -174,6 +175,15 @@ public class DataInitializer implements ApplicationRunner {
             role.setPermissions(permissions);
             rolesRepository.save(role);
             log.info("Attached {} permissions to role {}", permissions.size(), roleName);
+        });
+    }
+
+    private void attachAllPermissionsToAdmin() {
+        rolesRepository.findByName("ADMIN").ifPresent(adminRole -> {
+            Set<Permission> all = new HashSet<>(permissionsRepository.findAll());
+            adminRole.setPermissions(all);
+            rolesRepository.save(adminRole);
+            log.info("Synced ADMIN role with all permissions ({} total)", all.size());
         });
     }
 }
