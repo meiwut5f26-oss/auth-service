@@ -8,7 +8,6 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import service.CSFC.CSFC_auth_service.model.constants.CustomerStatus;
 import service.CSFC.CSFC_auth_service.model.entity.Permission;
@@ -19,11 +18,9 @@ import service.CSFC.CSFC_auth_service.repository.RolesRepository;
 import service.CSFC.CSFC_auth_service.repository.UsersRepository;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 @Component
@@ -59,6 +56,7 @@ public class DataInitializer implements ApplicationRunner {
             "ROLE_DELETE",
             "USER_DELETE",
             "USER_UPDATE_STATUS",
+            "USER_UPDATE_ROLE",
             "USER_CREATE",
             "USER_READ_SELF",
             "CUSTOMER_PROFILE_UPDATE_SELF",
@@ -82,7 +80,6 @@ public class DataInitializer implements ApplicationRunner {
     }};
 
     @Override
-    @Transactional
     public void run(@Nonnull ApplicationArguments args) {
         // Always seed roles first regardless of admin-init flag
         seedRoles();
@@ -158,6 +155,7 @@ public class DataInitializer implements ApplicationRunner {
                     return permissionsRepository.save(permission);
                 })
         );
+        permissionsRepository.flush();
     }
 
     private void seedRolePermissions() {
@@ -165,14 +163,16 @@ public class DataInitializer implements ApplicationRunner {
             Roles role = rolesRepository.findByName(roleName)
                     .orElseThrow(() -> new IllegalStateException("Role not found during permission seeding: " + roleName));
 
-            Set<Permission> permissions = new HashSet<>(role.getPermissions());
             permissionNames.forEach(permission ->
-                    permissionsRepository.findByName(permission).ifPresent(permissions::add)
+                    permissionsRepository.findByName(permission).ifPresent(p -> {
+                        if (!role.getPermissions().contains(p)) {
+                            role.getPermissions().add(p);
+                        }
+                    })
             );
 
-            role.setPermissions(permissions);
-            rolesRepository.save(role);
-            log.info("Attached {} permissions to role {}", permissions.size(), roleName);
+            rolesRepository.saveAndFlush(role);
+            log.info("Attached {} permissions to role {}", role.getPermissions().size(), roleName);
         });
     }
 }
