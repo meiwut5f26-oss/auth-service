@@ -61,6 +61,7 @@ public class DataInitializer implements ApplicationRunner {
             "USER_UPDATE_STATUS",
             "USER_CREATE",
             "USER_READ_SELF",
+            "USER_UPDATE_ROLE",
             "CUSTOMER_PROFILE_UPDATE_SELF",
             "CUSTOMER_PROFILE_LIST",
             "CUSTOMER_PROFILE_VIEW",
