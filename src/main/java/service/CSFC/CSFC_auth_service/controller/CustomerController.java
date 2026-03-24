@@ -26,7 +26,7 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @GetMapping("/me/details")
-    @PreAuthorize("hasAuthority('USER_READ_SELF')")
+    @PreAuthorize("hasAnyRole('CUSTOMER')")
     public ResponseEntity<BaseResponse<UserResponse>> getMyProfile(
             @AuthenticationPrincipal CustomerUserDetails currentUser
     ) {
@@ -35,7 +35,7 @@ public class CustomerController {
     }
 
     @PutMapping("/me/details")
-    @PreAuthorize("hasAuthority('CUSTOMER_PROFILE_UPDATE_SELF')")
+    @PreAuthorize("hasAnyRole('CUSTOMER')")
     public ResponseEntity<BaseResponse<UserResponse>> updateMyProfile(
             @AuthenticationPrincipal CustomerUserDetails currentUser,
             @Valid @RequestBody UpdateMyProfileRequest request
