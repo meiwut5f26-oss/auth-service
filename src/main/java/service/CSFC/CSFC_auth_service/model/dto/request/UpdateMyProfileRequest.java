@@ -1,5 +1,6 @@
 package service.CSFC.CSFC_auth_service.model.dto.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -15,7 +16,8 @@ public class UpdateMyProfileRequest {
 
     @Size(max = 500, message = "Địa chỉ tối đa 500 ký tự")
     private String address;
-
+    @Email
+    private String mail;
     private Boolean marketingOptin;
 }
 

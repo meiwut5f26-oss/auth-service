@@ -68,7 +68,7 @@ public class CustomerServiceImpl implements CustomerService {
     public UserResponse updateMyProfile(UUID userId, UpdateMyProfileRequest request) {
         Users user = getUserOrThrow(userId);
         String oldSnapshot = toJsonSafe(userMapper.toResponse(user));
-        applyProfileUpdate(user, request.getName(), request.getPhone(), request.getAddress(), request.getMarketingOptin(), null);
+        applyProfileUpdate(user, request.getName(), request.getPhone(), request.getAddress(), request.getMarketingOptin(), null,request.getMail());
         Users saved = usersRepository.save(user);
         logAudit(userId, "CUSTOMER_SELF_UPDATE", "Khách hàng tự cập nhật hồ sơ", oldSnapshot, toJsonSafe(userMapper.toResponse(saved)), "USER", userId);
         return userMapper.toResponse(saved);
@@ -91,7 +91,7 @@ public class CustomerServiceImpl implements CustomerService {
     public UserResponse adminUpdateCustomerProfile(UUID userId, AdminUpdateCustomerProfileRequest request) {
         Users user = getUserOrThrow(userId);
         String oldSnapshot = toJsonSafe(userMapper.toResponse(user));
-        applyProfileUpdate(user, request.getName(), request.getPhone(), request.getAddress(), request.getMarketingOptin(), request.getFranchiseId());
+        applyProfileUpdate(user, request.getName(), request.getPhone(), request.getAddress(), request.getMarketingOptin(), request.getFranchiseId(),request.getMail());
         Users saved = usersRepository.save(user);
         logAudit(userId, "ADMIN_UPDATE_PROFILE", "Admin cập nhật hồ sơ khách hàng", oldSnapshot, toJsonSafe(userMapper.toResponse(saved)), "USER", userId);
         return userMapper.toResponse(saved);
@@ -224,7 +224,7 @@ public class CustomerServiceImpl implements CustomerService {
     public UserResponse updateInternalCustomer(UUID userId, AdminUpdateCustomerProfileRequest request) {
         Users user = getUserOrThrow(userId);
         String oldSnapshot = toJsonSafe(userMapper.toResponse(user));
-        applyProfileUpdate(user, request.getName(), request.getPhone(), request.getAddress(), request.getMarketingOptin(), request.getFranchiseId());
+        applyProfileUpdate(user, request.getName(), request.getPhone(), request.getAddress(), request.getMarketingOptin(), request.getFranchiseId(),request.getMail());
         if (request.getStatus() != null) {
             user.setStatus(request.getStatus());
         }
@@ -310,7 +310,7 @@ public class CustomerServiceImpl implements CustomerService {
                                     String phone,
                                     String address,
                                     Boolean marketingOptin,
-                                    UUID franchiseId) {
+                                    UUID franchiseId,String mail) {
         if (StringUtils.hasText(name)) {
             user.setName(name.trim());
         }
@@ -330,6 +330,9 @@ public class CustomerServiceImpl implements CustomerService {
         }
         if (franchiseId != null) {
             user.setFranchiseId(franchiseId);
+        }
+        if(mail != null){
+            user.setEmail(mail);
         }
     }
 

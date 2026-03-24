@@ -1,0 +1,102 @@
+server:
+  port: ${SERVER_PORT}
+  forward-headers-strategy: framework
+
+application:
+  config:
+    order-service-url: ${ORDER_SERVICE_URL}
+    franchise-service-url: ${FRANCHISE_SERVICE_URL}
+
+spring:
+  data:
+    redis:
+      url: ${REDIS_URL}
+      ssl:
+        enabled: true
+
+
+  application:
+    name: csfc-auth-service
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      initialization-fail-timeout: 30000
+      connection-timeout: 60000
+      validation-timeout: 5000
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-test-query: SELECT 1
+  jpa:
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+#
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+app:
+  admin-init:
+    enabled: ${ADMIN_INIT_ENABLED:false}
+    email: ${ADMIN_INIT_EMAIL:}
+    password: ${ADMIN_INIT_PASSWORD:}
+    name: ${ADMIN_INIT_NAME:System Admin}
+    role-name: ${ADMIN_INIT_ROLE:ADMIN}
+  reset-password:
+    base-url: ${RESET_PASSWORD_BASE_URL:https://auth-service-wq2a.onrender.com}
+
+eureka:
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:true}
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+    register-with-eureka: ${EUREKA_CLIENT_ENABLED:true}
+    fetch-registry: ${EUREKA_CLIENT_ENABLED:true}
+  instance:
+    prefer-ip-address: false
+    hostname: ${RENDER_EXTERNAL_HOSTNAME:localhost}
+    secure-port: 443
+    secure-port-enabled: true
+    non-secure-port-enabled: false
+    home-page-url: https://${RENDER_EXTERNAL_HOSTNAME:localhost}/
+    status-page-url: https://${RENDER_EXTERNAL_HOSTNAME:localhost}/actuator/info
+    health-check-url: https://${RENDER_EXTERNAL_HOSTNAME:localhost}/actuator/health
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+    instance-id: ${spring.application.name}:${RENDER_EXTERNAL_HOSTNAME:localhost}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  health:
+    defaults:
+      enabled: true
+    db:
+      enabled: false
+    discovery:
+      enabled: true
+    mail:
+      enabled: false
+
+resend:
+  api-key: ${RESEND_API_KEY}
+  from-email: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
