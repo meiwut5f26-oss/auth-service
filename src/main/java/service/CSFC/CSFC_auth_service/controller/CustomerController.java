@@ -26,7 +26,7 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @GetMapping("/me/details")
-    @PreAuthorize("hasAnyRole('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<BaseResponse<UserResponse>> getMyProfile(
             @AuthenticationPrincipal CustomerUserDetails currentUser
     ) {
@@ -35,7 +35,7 @@ public class CustomerController {
     }
 
     @PutMapping("/me/details")
-    @PreAuthorize("hasAnyRole('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<BaseResponse<UserResponse>> updateMyProfile(
             @AuthenticationPrincipal CustomerUserDetails currentUser,
             @Valid @RequestBody UpdateMyProfileRequest request
