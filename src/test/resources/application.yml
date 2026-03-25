@@ -24,3 +24,11 @@ application:
   config:
     franchise-service-url: api-gate-way.onrender.com
     order-service-url: api-gate-way.onrender.com
+
+mail:
+  host: smtp.test
+  port: 1025
+  username: test@csfc.local
+  password: secret
+  from: test@csfc.local
+  from-name: CSFC Test Sender
