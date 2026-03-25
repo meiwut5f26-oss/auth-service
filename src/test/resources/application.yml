@@ -19,3 +19,8 @@ jwt:
   secret: c2VjdXJlX3Rlc3Rfc2VjcmV0X2tleV9mb3JfdGVzdF9sb25nX3N0cmluZw==
   access-token-expiration: 3600000
   refresh-token-expiration: 86400000
+
+application:
+  config:
+    franchise-service-url: api-gate-way.onrender.com
+    order-service-url: api-gate-way.onrender.com
