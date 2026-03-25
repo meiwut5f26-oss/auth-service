@@ -1,5 +1,8 @@
 package service.CSFC.CSFC_auth_service.common.exception;
 
+import java.nio.file.AccessDeniedException;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -7,59 +10,62 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import service.CSFC.CSFC_auth_service.common.response.BaseResponse;
 
-import java.nio.file.AccessDeniedException;
+import service.CSFC.CSFC_auth_service.common.response.BaseResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private ResponseEntity<BaseResponse<Object>> buildError(HttpStatus status, String message) {
+        return ResponseEntity.status(status).body(BaseResponse.error(status.value(), message));
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<String> handleBadCredentials(BadCredentialsException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email hoặc mật khẩu không chính xác");
+    public ResponseEntity<BaseResponse<Object>> handleBadCredentials(BadCredentialsException ex) {
+        return buildError(HttpStatus.UNAUTHORIZED, "Email hoặc mật khẩu không chính xác");
     }
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<String> handleBadRequest(BadRequestException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    public ResponseEntity<BaseResponse<Object>> handleBadRequest(BadRequestException ex) {
+        return buildError(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<String> handleNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    public ResponseEntity<BaseResponse<Object>> handleNotFound(ResourceNotFoundException ex) {
+        return buildError(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<String> handleUnauthorized(UnauthorizedException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    public ResponseEntity<BaseResponse<Object>> handleUnauthorized(UnauthorizedException ex) {
+        return buildError(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
     @ExceptionHandler({ForbiddenException.class, AccessDeniedException.class, AuthorizationDeniedException.class})
-    public ResponseEntity<String> handleForbidden(ForbiddenException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    public ResponseEntity<BaseResponse<Object>> handleForbidden(RuntimeException ex) {
+        return buildError(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidation(MethodArgumentNotValidException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    public ResponseEntity<BaseResponse<Object>> handleValidation(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        if (message.isBlank()) {
+            message = "Yêu cầu không hợp lệ";
+        }
+        return buildError(HttpStatus.BAD_REQUEST, message);
     }
-
-
 
     @ExceptionHandler(AppException.class)
     public ResponseEntity<BaseResponse<Object>> handleAppException(AppException e) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getErrorCode(), e.getMessage()));
+        return buildError(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<BaseResponse<Object>> handleGeneralException(Exception e) {
         e.printStackTrace();
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error(500, "Lỗi hệ thống: " + e.getMessage()));
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi hệ thống: " + e.getMessage());
     }
-
-
 }

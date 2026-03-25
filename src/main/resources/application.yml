@@ -79,10 +79,6 @@ jwt:
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
 mail:
-  host: ${MAIL_HOST:smtp.gmail.com}
-  port: ${MAIL_PORT:587}
-  username: ${MAIL_USERNAME}
-  password: ${MAIL_PASSWORD}
   from: ${MAIL_FROM:csfc@example.com}
   from-name: ${MAIL_FROM_NAME:CSFC Auth Service}
 
@@ -107,5 +103,6 @@ management:
       enabled: false
 
 resend:
-  api-key: ${RESEND_API_KEY}
+  api-key: ${RESEND_API_KEY:}
   from-email: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
+  base-url: ${RESEND_BASE_URL:https://api.resend.com}
