@@ -50,6 +50,8 @@ public class DataInitializer implements ApplicationRunner {
     private static final List<String> BOOTSTRAP_PERMISSIONS = List.of(
             "PERMISSION_ASSIGN",
             "PERMISSION_VIEW",
+            "PERMISSION_CREATE",
+            "PERMISSION_DELETE",
             "ROLE_CREATE",
             "ROLE_UPDATE",
             "ROLE_VIEW",

@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import service.CSFC.CSFC_auth_service.common.response.BaseResponse;
+import service.CSFC.CSFC_auth_service.model.dto.request.AdminPermissionCreateRequest;
 import service.CSFC.CSFC_auth_service.model.dto.response.AdminPermissionsViewResponse;
 import service.CSFC.CSFC_auth_service.service.AdminPermissionsService;
 
@@ -33,6 +34,45 @@ class AdminPermissionsControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         verify(adminPermissionsService).addPermissionToRole(eq(1), eq("USER_READ"));
+    }
+
+    @Test
+    void createPermission_ShouldReturnCreatedPermission() {
+        AdminPermissionCreateRequest request = AdminPermissionCreateRequest.builder()
+                .name("USER_CREATE")
+                .description("Create user")
+                .build();
+
+        AdminPermissionsViewResponse viewResponse = AdminPermissionsViewResponse.builder()
+                .id(10)
+                .name("USER_CREATE")
+                .description("Create user")
+                .build();
+
+        when(adminPermissionsService.createPermission("USER_CREATE", "Create user"))
+                .thenReturn(viewResponse);
+
+        ResponseEntity<BaseResponse<AdminPermissionsViewResponse>> response = controller.createPermission(request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getData()).isEqualTo(viewResponse);
+    }
+
+    @Test
+    void removePermissionFromRole_ShouldInvokeService() {
+        ResponseEntity<BaseResponse<Object>> response = controller.removePermissionFromRole(2, "USER_DELETE");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(adminPermissionsService).removePermissionFromRole(eq(2), eq("USER_DELETE"));
+    }
+
+    @Test
+    void deletePermission_ShouldInvokeService() {
+        ResponseEntity<BaseResponse<Object>> response = controller.deletePermission(5);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(adminPermissionsService).deletePermission(eq(5));
     }
 
     @Test

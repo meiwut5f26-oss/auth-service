@@ -5,7 +5,6 @@ import org.springframework.stereotype.*;
 import service.CSFC.CSFC_auth_service.common.exception.BadRequestException;
 import service.CSFC.CSFC_auth_service.common.exception.ResourceNotFoundException;
 import service.CSFC.CSFC_auth_service.mapper.PermissionMapper;
-import service.CSFC.CSFC_auth_service.model.dto.response.AdminPermissionsCreateResponse;
 import service.CSFC.CSFC_auth_service.model.dto.response.AdminPermissionsViewResponse;
 import service.CSFC.CSFC_auth_service.model.entity.Permission;
 import service.CSFC.CSFC_auth_service.model.entity.Roles;
@@ -46,6 +45,49 @@ public class AdminPermissionsServiceImpl implements AdminPermissionsService {
 
         rolesRepository.save(role);
     }
+
+    @Override
+    public AdminPermissionsViewResponse createPermission(String permissionName, String description) {
+        String normalizedPermission = permissionName.trim().toUpperCase();
+
+        permissionsRepository.findByName(normalizedPermission)
+                .ifPresent(p -> { throw new BadRequestException("Permission đã tồn tại"); });
+
+        Permission permission = permissionsRepository.save(
+                Permission.builder()
+                        .name(normalizedPermission)
+                        .description(description)
+                        .build()
+        );
+
+        return permissionMapper.toResponse(permission);
+    }
+
+    @Override
+    public void removePermissionFromRole(Integer roleId, String permissionName) {
+        Roles role = rolesRepository.findById(roleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Role không tồn tại"));
+
+        Permission permission = permissionsRepository.findByName(permissionName.trim().toUpperCase())
+                .orElseThrow(() -> new ResourceNotFoundException("Permission không tồn tại"));
+
+        if (!role.getPermissions().remove(permission)) {
+            throw new ResourceNotFoundException("Permission không tồn tại trong role");
+        }
+
+        rolesRepository.save(role);
+    }
+
+    @Override
+    public void deletePermission(Integer permissionId) {
+        Permission permission = permissionsRepository.findById(permissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Permission không tồn tại"));
+
+        // Remove association with roles before deleting
+        permission.getRoles().forEach(role -> role.getPermissions().remove(permission));
+        permissionsRepository.delete(permission);
+    }
+
     @Override
     public List<AdminPermissionsViewResponse> getAllPermissions() {
 
